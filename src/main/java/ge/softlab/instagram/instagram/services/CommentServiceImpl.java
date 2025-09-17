@@ -6,6 +6,7 @@ import ge.softlab.instagram.instagram.repositories.PostRepository;
 import ge.softlab.instagram.instagram.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -13,26 +14,34 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
-    private final CommentRepository repository;
-    private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     @Override
-    public Comment addComment(Comment comment) {
-        postRepository.findById(comment.getPost().getId())
-                .orElseThrow(() -> new RuntimeException("Post not found"));
-
-        userRepository.findById(comment.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return repository.save(comment);
+    @Transactional(readOnly = true)
+    public List<Comment> getCommentsByPost(Long postId) {
+        return commentRepository.findByPostIdAndDeletedFalse(postId);
     }
 
     @Override
-    public List<Comment> getCommentsByPost(Long postId) {
-        return repository.findAll()
-                .stream()
-                .filter(c -> c.getPost().getId().equals(postId))
-                .toList();
+    @Transactional
+    public Comment addComment(Comment comment) {
+        return commentRepository.save(comment);
+    }
+
+    @Override
+    @Transactional
+    public Comment replyToComment(Long parentId, Comment reply) {
+        Comment parent = commentRepository.findById(parentId).orElseThrow();
+        reply.setParent(parent);
+        reply.setPost(parent.getPost());
+        return commentRepository.save(reply);
+    }
+
+    @Override
+    @Transactional
+    public void deleteComment(Long commentId) {
+        Comment comment = commentRepository.findById(commentId).orElseThrow();
+        comment.setDeleted(true);
+        commentRepository.save(comment);
     }
 }

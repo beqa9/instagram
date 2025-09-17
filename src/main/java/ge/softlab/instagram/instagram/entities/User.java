@@ -30,6 +30,9 @@ public class User {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
+    @Column
+    private String bio;
+
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
 

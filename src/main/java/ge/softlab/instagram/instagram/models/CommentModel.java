@@ -3,6 +3,7 @@ package ge.softlab.instagram.instagram.models;
 import lombok.Builder;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Builder
 public record CommentModel(
@@ -11,5 +12,7 @@ public record CommentModel(
         Long postId,
         Long parentId,
         String text,
-        OffsetDateTime createdAt
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt,
+        List<CommentModel> replies
 ) {}

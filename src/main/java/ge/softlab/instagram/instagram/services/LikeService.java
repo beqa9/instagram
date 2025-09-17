@@ -2,7 +2,11 @@ package ge.softlab.instagram.instagram.services;
 
 import ge.softlab.instagram.instagram.entities.Like;
 
+import java.util.List;
+
 public interface LikeService {
-    Like likePost(Long userId, Long postId);
-    void unlikePost(Long userId, Long postId);
+    List<Like> getLikesByPost(Long postId);
+    List<Like> getLikesByUser(Long userId);
+    Like likePost(Like like);
+    void unlikePost(Long likeId);
 }

@@ -6,34 +6,39 @@ import ge.softlab.instagram.instagram.repositories.PostRepository;
 import ge.softlab.instagram.instagram.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService {
 
-    private final LikeRepository repository;
-    private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
 
     @Override
-    public Like likePost(Long userId, Long postId) {
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        var post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
-
-        Like like = new Like();
-        like.setUser(user);
-        like.setPost(post);
-
-        return repository.save(like);
+    @Transactional(readOnly = true)
+    public List<Like> getLikesByPost(Long postId) {
+        return likeRepository.findByPostIdAndDeletedFalse(postId);
     }
 
     @Override
-    public void unlikePost(Long userId, Long postId) {
-        repository.findAll().stream()
-                .filter(l -> l.getUser().getId().equals(userId) && l.getPost().getId().equals(postId))
-                .findFirst()
-                .ifPresent(repository::delete);
+    @Transactional(readOnly = true)
+    public List<Like> getLikesByUser(Long userId) {
+        return likeRepository.findByUserIdAndDeletedFalse(userId);
+    }
+
+    @Override
+    @Transactional
+    public Like likePost(Like like) {
+        return likeRepository.save(like);
+    }
+
+    @Override
+    @Transactional
+    public void unlikePost(Long likeId) {
+        Like like = likeRepository.findById(likeId).orElseThrow();
+        like.setDeleted(true);
+        likeRepository.save(like);
     }
 }

@@ -5,33 +5,37 @@ import ge.softlab.instagram.instagram.repositories.FollowRepository;
 import ge.softlab.instagram.instagram.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class FollowServiceImpl implements FollowService {
 
-    private final FollowRepository repository;
-    private final UserRepository userRepository;
+    private final FollowRepository followRepository;
 
     @Override
-    public Follow follow(Long followerId, Long followingId) {
-        var follower = userRepository.findById(followerId)
-                .orElseThrow(() -> new RuntimeException("Follower not found"));
-        var following = userRepository.findById(followingId)
-                .orElseThrow(() -> new RuntimeException("Following not found"));
-
-        Follow follow = new Follow();
-        follow.setFollower(follower);
-        follow.setFollowing(following);
-
-        return repository.save(follow);
+    @Transactional
+    public Follow followUser(Follow follow) {
+        return followRepository.save(follow);
     }
 
     @Override
-    public void unfollow(Long followerId, Long followingId) {
-        repository.findAll().stream()
-                .filter(f -> f.getFollower().getId().equals(followerId) && f.getFollowing().getId().equals(followingId))
-                .findFirst()
-                .ifPresent(repository::delete);
+    @Transactional
+    public void unfollowUser(Long followId) {
+        followRepository.deleteById(followId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Follow> getFollowers(Long userId) {
+        return followRepository.findByFollowingId(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Follow> getFollowing(Long userId) {
+        return followRepository.findByFollowerId(userId);
     }
 }

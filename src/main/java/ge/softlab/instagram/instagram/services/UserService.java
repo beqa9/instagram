@@ -1,18 +1,21 @@
 package ge.softlab.instagram.instagram.services;
 
 import ge.softlab.instagram.instagram.entities.User;
+import ge.softlab.instagram.instagram.models.CreateUserRequest;
+import ge.softlab.instagram.instagram.models.UpdateUserRequest;
 import ge.softlab.instagram.instagram.models.UserModel;
 
 import java.util.List;
 
 public interface UserService {
+
     List<User> getAllUsers();
 
     User getUserById(Long id);
 
-    User addUserByModel(UserModel userModel);
+    User registerUser(CreateUserRequest request);
 
-    User updateUserByIdAndModel(Long id, UserModel userModel);
+    User updateUser(Long id, UpdateUserRequest request);
 
-    void deleteUserById(Long id);
+    void deleteUser(Long id);
 }

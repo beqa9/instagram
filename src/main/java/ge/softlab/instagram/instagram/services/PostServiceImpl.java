@@ -4,7 +4,10 @@ import ge.softlab.instagram.instagram.entities.Post;
 import ge.softlab.instagram.instagram.repositories.PostRepository;
 import ge.softlab.instagram.instagram.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -12,29 +15,42 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
-    private final PostRepository repository;
-    private final UserRepository userRepository;
+    private final PostRepository postRepository;
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Post> getAllPosts() {
+        return postRepository.findByDeletedFalse();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Post getPostById(Long id) {
+        return postRepository.findById(id)
+                .filter(p -> !p.isDeleted())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Post not found"));
+    }
+
+    @Override
+    @Transactional
     public Post createPost(Post post) {
-        // Ensure user exists
-        userRepository.findById(post.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return repository.save(post);
+        return postRepository.save(post);
     }
 
     @Override
-    public Post getPost(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+    @Transactional
+    public Post updatePost(Long id, Post post) {
+        Post existing = getPostById(id);
+        existing.setCaption(post.getCaption());
+        existing.setImageUrl(post.getImageUrl());
+        return postRepository.save(existing);
     }
 
     @Override
-    public List<Post> getUserPosts(Long userId) {
-        return repository.findAll()
-                .stream()
-                .filter(p -> p.getUser().getId().equals(userId))
-                .toList();
+    @Transactional
+    public void deletePost(Long id) {
+        Post post = getPostById(id);
+        post.setDeleted(true);
+        postRepository.save(post);
     }
 }
