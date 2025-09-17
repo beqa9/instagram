@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Where;
-import org.springframework.data.annotation.Id;
-
+import jakarta.persistence.Id;
 import java.time.OffsetDateTime;
 
 @Setter
